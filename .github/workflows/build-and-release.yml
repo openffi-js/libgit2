@@ -15,8 +15,8 @@ jobs:
             platform: linux-x86_64
           # - os: ubuntu-24.04-arm
           #   platform: linux-arm64
-          - os: macos-latest
-            platform: macos-x86_64
+          # - os: macos-latest
+          #   platform: macos-x86_64
           # - os: macos-latest-large
           #   platform: macos-arm64
 
