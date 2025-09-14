@@ -17,6 +17,7 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
+        version = pkgs.lib.trim (builtins.readFile ./.version);
       in
       {
         packages.default = pkgs.callPackage (
@@ -29,7 +30,7 @@
 
           stdenv.mkDerivation (finalAttrs: {
             pname = "static-libgit2";
-            version = "1.9.1";
+            inherit version;
             # also check the following packages for updates: python3Packages.pygit2 and libgit2-glib
 
             outputs = [
@@ -41,7 +42,7 @@
             src = fetchFromGitHub {
               owner = "libgit2";
               repo = "libgit2";
-              rev = "v${finalAttrs.version}";
+              rev = "v${version}";
               hash = "sha256-/xI3v7LNhpgfjv/m+sZwYDhhYvS6kQYxiiiG3+EF8Mw=";
             };
 
