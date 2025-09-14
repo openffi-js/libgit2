@@ -79,10 +79,10 @@
               pcre
               pcre2
               llhttp
-              krb5
+              gss
             ];
 
-            propagatedBuildInputs = lib.optional (!stdenv.hostPlatform.isLinux) pkgs.libiconv;
+            propagatedBuildInputs = lib.optional (!stdenv.hostPlatform.isLinux) pkgsStatic.libiconv;
 
             doCheck = true;
             checkPhase = ''
