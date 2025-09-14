@@ -28,7 +28,7 @@
           }:
 
           stdenv.mkDerivation (finalAttrs: {
-            pname = "tarunlibgit2";
+            pname = "static-libgit2";
             version = "1.9.1";
             # also check the following packages for updates: python3Packages.pygit2 and libgit2-glib
 
@@ -84,7 +84,7 @@
 
             propagatedBuildInputs = lib.optional (!stdenv.hostPlatform.isLinux) pkgs.libiconv;
 
-            doCheck = false;
+            doCheck = true;
             checkPhase = ''
               testArgs=(-v -xonline)
 
@@ -109,15 +109,6 @@
                 inherit gitstatus;
               }
             );
-
-            meta = with lib; {
-              description = "Linkable library implementation of Git that you can use in your application";
-              mainProgram = "git2";
-              homepage = "https://libgit2.org/";
-              license = licenses.gpl2Only;
-              platforms = platforms.all;
-              maintainers = with maintainers; [ SuperSandro2000 ];
-            };
           })
         ) { };
       }

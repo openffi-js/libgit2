@@ -1,6 +1,6 @@
 import { dlopen, FFIType } from "bun:ffi";
 
-const path = "/nix/store/798sjv6krarrqs7glw6s93mc33bwav1a-tarunlibgit2-1.9.1-lib/lib/libgit2.so.1.9.1";
+const path = "./result-lib/lib/libgit2.so.1.9.1";
 
 // int git_libgit2_version(int *major, int *minor, int *rev);
 const {
