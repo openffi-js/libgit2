@@ -57,8 +57,7 @@ jobs:
 
       - name: Rename library file with platform
         run: |
-          cd result-lib/lib
-          lib_file="${{ steps.find-lib.outputs.lib_file }}"
+          lib_file="./result-lib/lib/${{ steps.find-lib.outputs.lib_file }}"
           base_name="${lib_file%.*}"
           extension="${lib_file##*.}"
           new_name="${base_name}-${{ matrix.platform }}.${extension}"
@@ -69,7 +68,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: library-${{ matrix.platform }}
-          path: result-lib/lib/*-${{ matrix.platform }}.*
+          path: ./*-${{ matrix.platform }}.*
           retention-days: 1
 
   release:
