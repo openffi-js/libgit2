@@ -6,7 +6,7 @@ const platform = os.platform();
 if (platform === "darwin") {
   path = "./result-lib/lib/libgit2.1.9.dylib";
 } else {
-  path = "./result-lib/bin/libgit2.so.1.9.1";
+  path = "./result-lib/lib/libgit2.so.1.9.1";
 }
 
 // int git_libgit2_version(int *major, int *minor, int *rev);

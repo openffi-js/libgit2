@@ -79,7 +79,6 @@
               pcre
               pcre2
               llhttp
-              gss
             ];
 
             propagatedBuildInputs = lib.optional (!stdenv.hostPlatform.isLinux) pkgsStatic.libiconv;
