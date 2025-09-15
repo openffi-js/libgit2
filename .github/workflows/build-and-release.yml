@@ -33,6 +33,8 @@ jobs:
         uses: cachix/install-nix-action@v27
         with:
           nix_path: nixpkgs=channel:nixos-unstable
+        env:
+          NIX_FIRST_BUILD_UID: "351"
 
       - name: Build project
         run: nix build .#default.lib
