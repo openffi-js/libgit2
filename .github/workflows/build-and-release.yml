@@ -17,8 +17,8 @@ jobs:
             platform: linux-arm64
           - os: macos-latest
             platform: macos-arm64
-          - os: macos-latest-large
-            platform: macos-x86_64
+          #- os: macos-latest-large
+          #  platform: macos-x86_64
 
     runs-on: ${{ matrix.os }}
 
