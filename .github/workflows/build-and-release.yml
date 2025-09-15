@@ -60,9 +60,8 @@ jobs:
       - name: Rename library file with platform
         run: |
           lib_file="./result-lib/lib/${{ steps.find-lib.outputs.lib_file }}"
-          extension="${lib_file##*.}"
           version=$(cat .version)
-          cp "$lib_file" "libgit2-$version-${{ matrix.platform }}.$extension"
+          cp "$lib_file" "libgit2-$version-${{ matrix.platform }}"
           echo "Renamed $lib_file to $new_name"
 
       - name: Upload artifact
