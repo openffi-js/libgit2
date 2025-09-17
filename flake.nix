@@ -60,11 +60,11 @@
               ];
 
               cmakeFlags = [
-                "-DREGEX_BACKEND=pcre2"
+                "-DREGEX_BACKEND=builtin"
                 "-DUSE_HTTP_PARSER=llhttp"
-                "-DUSE_SSH=ON"
                 "-DBUILD_SHARED_LIBS=ON"
                 "-DLINK_WITH_STATIC_LIBRARIES=ON"
+                "-DBUILD_CLI=OFF"
               ]
               ++ lib.optionals stdenv.hostPlatform.isWindows [
                 "-DDLLTOOL=${stdenv.cc.bintools.targetPrefix}dlltool"
@@ -72,6 +72,10 @@
                 "-DCMAKE_LIBRARY_PATH=${stdenv.cc.libc}/lib"
                 "-DCMAKE_SYSTEM_NAME=Windows"
                 "-DCMAKE_SYSTEM_PROCESSOR=x86_64"
+                "-DLIBSSH2_LIBRARY=${targetPkgs.libssh2}/bin/libssh2-1.dll.a"
+                "-DLLHTTP_LIBRARY=${targetPkgs.llhttp}/lib/libllhttp.dll.a"
+                "-DGSSAPI_LIBRARIES="
+                "-DBUILD_TESTS=OFF"
               ]
               ++ lib.optionals stdenv.hostPlatform.isOpenBSD [
                 # openbsd headers fail with default c90
@@ -84,18 +88,24 @@
                 pkg-config
               ];
 
-              buildInputs = with pkgsStatic; [
+              buildInputs = with pkgsStatic; ([
                 zlib
-                libssh2
                 openssl
-                pcre
-                pcre2
                 llhttp
-              ];
+              ]);
 
-              propagatedBuildInputs = lib.optional (!stdenv.hostPlatform.isLinux) pkgsStatic.libiconv;
+              env =
+                if stdenv.hostPlatform.isWindows then
+                  {
+                    NIX_CFLAGS_COMPILE = "-static-libgcc -static-libstdc++";
+                  }
+                else
+                  { };
 
-              doCheck = true;
+              propagatedBuildInputs = lib.optional (!stdenv.hostPlatform.isLinux) [ pkgsStatic.libiconv ];
+
+              # Don’t try to run Windows executables during cross builds
+              doCheck = !stdenv.hostPlatform.isWindows;
               checkPhase = ''
                 testArgs=(-v -xonline)
 
