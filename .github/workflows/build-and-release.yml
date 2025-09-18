@@ -8,17 +8,25 @@ on:
 
 jobs:
   build:
+    continue-on-error: true
     strategy:
       matrix:
         include:
           - os: ubuntu-latest
-            platform: linux-x86_64
+            platform: linux-x64
+            packageName: default
           - os: ubuntu-24.04-arm
             platform: linux-arm64
+            packageName: default
           - os: macos-latest
             platform: macos-arm64
-          #- os: macos-latest-large
-          #  platform: macos-x86_64
+            packageName: default
+          - os: macos-latest
+            platform: macos-x64
+            packageName: x64Darwin
+          - os: ubuntu-latest
+            platform: windows-x64
+            packageName: windows
 
     runs-on: ${{ matrix.os }}
 
@@ -37,38 +45,13 @@ jobs:
           NIX_FIRST_BUILD_UID: "351"
 
       - name: Build project
-        run: nix build .#default.lib
-
-      - name: Find library file
-        id: find-lib
-        run: |
-          cd result-lib/lib
-          lib_file=""
-          for file in *; do
-            if [ -f "$file" ] && [ ! -L "$file" ]; then
-              lib_file="$file"
-              break
-            fi
-          done
-          if [ -z "$lib_file" ]; then
-            echo "No non-symlinked file found in result-lib/lib"
-            exit 1
-          fi
-          echo "lib_file=$lib_file" >> $GITHUB_OUTPUT
-          echo "Found library file: $lib_file"
-
-      - name: Rename library file with platform
-        run: |
-          lib_file="./result-lib/lib/${{ steps.find-lib.outputs.lib_file }}"
-          version=$(cat .version)
-          cp "$lib_file" "libgit2-$version-${{ matrix.platform }}"
-          echo "Renamed $lib_file to $new_name"
+        run: nix build .#${{ matrix.packageName }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: library-${{ matrix.platform }}
-          path: ./*-${{ matrix.platform }}.*
+          path: ./result/lib/libgit2.dylib
           retention-days: 1
 
   release:
@@ -86,6 +69,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: artifacts/**/*
-          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
