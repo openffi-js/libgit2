@@ -63,6 +63,14 @@
                 "-DLINK_WITH_STATIC_LIBRARIES=ON"
                 "-DBUILD_CLI=OFF"
                 "-DBUILD_TESTS=OFF"
+                "-DUSE_GSSAPI=OFF"
+              ]
+              ++ lib.optionals stdenv.hostPlatform.isLinux [
+                "-DGSSAPI_INCLUDE_DIR=${pkgsStatic.krb5.dev}/include"
+                "-DGSSAPI_LIBRARIES=${pkgsStatic.krb5.lib}/lib/libgssapi_krb5.a"
+                "-DOPENSSL_ROOT_DIR=${pkgsStatic.openssl.dev}"
+                "-DOPENSSL_SSL_LIBRARY=${pkgsStatic.openssl.out}/lib/libssl.a"
+                "-DOPENSSL_CRYPTO_LIBRARY=${pkgsStatic.openssl.out}/lib/libcrypto.a"
               ]
               ++ lib.optionals stdenv.hostPlatform.isWindows [
                 "-DDLLTOOL=${stdenv.cc.bintools.targetPrefix}dlltool"
@@ -72,9 +80,26 @@
                 "-DCMAKE_C_STANDARD=99"
               ];
 
-              nativeBuildInputs = [ pkgs.cmake ];
+              preConfigure = ''
+                echo "TARUN"
+                echo ${pkgsStatic.krb5.out}
+                echo ${pkgsStatic.openssl.out}
+              '';
 
-              buildInputs = [ targetPkgs.zlib.static ];
+              nativeBuildInputs =
+                with pkgs;
+                [
+                  cmake
+                ]
+                ++ lib.optional stdenv.hostPlatform.isLinux [ pkg-config ];
+
+              buildInputs = [
+                targetPkgs.zlib.static
+              ]
+              ++ lib.optional stdenv.hostPlatform.isLinux (with pkgsStatic; [
+                openssl
+                krb5
+              ]);
 
               propagatedBuildInputs = lib.optional stdenv.hostPlatform.isDarwin pkgsStatic.libiconv;
 
