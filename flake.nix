@@ -80,12 +80,6 @@
                 "-DCMAKE_C_STANDARD=99"
               ];
 
-              preConfigure = ''
-                echo "TARUN"
-                echo ${pkgsStatic.krb5.out}
-                echo ${pkgsStatic.openssl.out}
-              '';
-
               nativeBuildInputs =
                 with pkgs;
                 [
@@ -96,10 +90,13 @@
               buildInputs = [
                 targetPkgs.zlib.static
               ]
-              ++ lib.optional stdenv.hostPlatform.isLinux (with pkgsStatic; [
-                openssl
-                krb5
-              ]);
+              ++ lib.optional stdenv.hostPlatform.isLinux (
+                with pkgsStatic;
+                [
+                  openssl
+                  krb5
+                ]
+              );
 
               propagatedBuildInputs = lib.optional stdenv.hostPlatform.isDarwin pkgsStatic.libiconv;
 
