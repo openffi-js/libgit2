@@ -24,7 +24,14 @@
           };
         };
 
-        version = pkgs.lib.trim (builtins.readFile ./.version);
+        x64DarwinPkgs = import nixpkgs {
+          inherit system;
+          crossSystem = {
+            config = "x86_64-darwin";
+          };
+        };
+
+        version = "1.9.1";
 
         build =
           targetPkgs:
@@ -39,12 +46,6 @@
             stdenv.mkDerivation (finalAttrs: {
               pname = "static-libgit2";
               inherit version;
-
-              outputs = [
-                "lib"
-                "dev"
-                "out"
-              ];
 
               src = fetchFromGitHub {
                 owner = "libgit2";
@@ -65,27 +66,17 @@
               ]
               ++ lib.optionals stdenv.hostPlatform.isWindows [
                 "-DDLLTOOL=${stdenv.cc.bintools.targetPrefix}dlltool"
+              ]
+              ++ lib.optionals stdenv.hostPlatform.isDarwin [
+                # openbsd headers fail with default c90
+                "-DCMAKE_C_STANDARD=99"
               ];
 
-              nativeBuildInputs = with pkgs; [
-                cmake
-              ];
+              nativeBuildInputs = [ pkgs.cmake ];
 
-              buildInputs =
-                with targetPkgs;
-                [
-                  zlib.static
-                ]
-                ++ lib.optional stdenv.hostPlatform.isDarwin [
-                  pkgsStatic.libiconv
-                ];
+              buildInputs = [ targetPkgs.zlib.static ];
 
-              propagatedBuildInputs = lib.optional stdenv.hostPlatform.isDarwin (
-                with pkgsStatic;
-                [
-                  libiconv
-                ]
-              );
+              propagatedBuildInputs = lib.optional stdenv.hostPlatform.isDarwin pkgsStatic.libiconv;
 
               env =
                 if stdenv.hostPlatform.isWindows then
@@ -109,6 +100,7 @@
       {
         packages.default = build pkgs;
         packages.windows = build windowsPkgs;
+        packages.x64Darwin = build x64DarwinPkgs;
       }
     );
 }
