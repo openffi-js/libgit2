@@ -1,12 +1,10 @@
 import { dlopen, FFIType } from "bun:ffi";
-import os from "os";
+import process from "process";
 
-let path: string;
-const platform = os.platform();
-if (platform === "darwin") {
-  path = "./result-lib/lib/libgit2.1.9.dylib";
-} else {
-  path = "./result-lib/lib/libgit2.so.1.9.1";
+let path = process.argv[2];
+if (!path) {
+  console.error("Usage: bun run libgit.ts /path/to/library");
+  process.exit(1);
 }
 
 // int git_libgit2_version(int *major, int *minor, int *rev);

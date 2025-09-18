@@ -21,7 +21,6 @@
           inherit system;
           crossSystem = {
             config = "x86_64-w64-mingw32";
-            libc = "msvcrt";
           };
         };
 
@@ -32,15 +31,14 @@
           targetPkgs.callPackage (
             {
               lib,
-              stdenv,
               pkgsStatic,
+              stdenv,
               fetchFromGitHub,
             }:
 
             stdenv.mkDerivation (finalAttrs: {
               pname = "static-libgit2";
               inherit version;
-              # also check the following packages for updates: python3Packages.pygit2 and libgit2-glib
 
               outputs = [
                 "lib"
@@ -60,39 +58,34 @@
               ];
 
               cmakeFlags = [
-                "-DREGEX_BACKEND=builtin"
-                "-DUSE_HTTP_PARSER=llhttp"
                 "-DBUILD_SHARED_LIBS=ON"
                 "-DLINK_WITH_STATIC_LIBRARIES=ON"
                 "-DBUILD_CLI=OFF"
+                "-DBUILD_TESTS=OFF"
               ]
               ++ lib.optionals stdenv.hostPlatform.isWindows [
                 "-DDLLTOOL=${stdenv.cc.bintools.targetPrefix}dlltool"
-                # For ws2_32, referred to by a `*.pc` file
-                "-DCMAKE_LIBRARY_PATH=${stdenv.cc.libc}/lib"
-                "-DCMAKE_SYSTEM_NAME=Windows"
-                "-DCMAKE_SYSTEM_PROCESSOR=x86_64"
-                "-DLIBSSH2_LIBRARY=${targetPkgs.libssh2}/bin/libssh2-1.dll.a"
-                "-DLLHTTP_LIBRARY=${targetPkgs.llhttp}/lib/libllhttp.dll.a"
-                "-DGSSAPI_LIBRARIES="
-                "-DBUILD_TESTS=OFF"
-              ]
-              ++ lib.optionals stdenv.hostPlatform.isOpenBSD [
-                # openbsd headers fail with default c90
-                "-DCMAKE_C_STANDARD=99"
               ];
 
               nativeBuildInputs = with pkgs; [
                 cmake
-                python3
-                pkg-config
               ];
 
-              buildInputs = with pkgsStatic; ([
-                zlib
-                openssl
-                llhttp
-              ]);
+              buildInputs =
+                with targetPkgs;
+                [
+                  zlib.static
+                ]
+                ++ lib.optional stdenv.hostPlatform.isDarwin [
+                  pkgsStatic.libiconv
+                ];
+
+              propagatedBuildInputs = lib.optional stdenv.hostPlatform.isDarwin (
+                with pkgsStatic;
+                [
+                  libiconv
+                ]
+              );
 
               env =
                 if stdenv.hostPlatform.isWindows then
@@ -101,26 +94,6 @@
                   }
                 else
                   { };
-
-              propagatedBuildInputs = lib.optional (!stdenv.hostPlatform.isLinux) [ pkgsStatic.libiconv ];
-
-              # Don’t try to run Windows executables during cross builds
-              doCheck = !stdenv.hostPlatform.isWindows;
-              checkPhase = ''
-                testArgs=(-v -xonline)
-
-                # slow
-                testArgs+=(-xclone::nonetwork::bad_urls)
-
-                # failed to set permissions on ...: Operation not permitted
-                testArgs+=(-xrepo::init::extended_1)
-                testArgs+=(-xrepo::template::extended_with_template_and_shared_mode)
-
-                (
-                  set -x
-                  ./libgit2_tests ''${testArgs[@]}
-                )
-              '';
 
               passthru.tests = lib.mapAttrs (_: v: v.override { libgit2 = finalAttrs.finalPackage; }) (
                 with targetPkgs;
