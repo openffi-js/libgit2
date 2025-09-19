@@ -1,4 +1,4 @@
-name: Build and Release
+name: Build
 
 on:
   push:
@@ -29,7 +29,7 @@ jobs:
             packageName: x64Darwin
             resultFile: './result/lib/libgit2.dylib'
           - runs-on: ubuntu-latest
-            platform: windows-x64
+            platform: win32-x64
             packageName: windows
             resultFile: './result/bin/libgit2.dll'
 

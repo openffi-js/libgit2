@@ -5,48 +5,11 @@ import { createRequire } from "module"
 
 const require = createRequire(import.meta.url)
 
-function detectPlatformAndArch() {
-  // Map platform names
-  let platform
-  switch (os.platform()) {
-    case "darwin":
-      platform = "darwin"
-      break
-    case "linux":
-      platform = "linux"
-      break
-    case "win32":
-      platform = "windows"
-      break
-    default:
-      platform = os.platform()
-      break
-  }
-
-  // Map architecture names
-  let arch
-  switch (os.arch()) {
-    case "x64":
-      arch = "x64"
-      break
-    case "arm64":
-      arch = "arm64"
-      break
-    case "arm":
-      arch = "arm"
-      break
-    default:
-      arch = os.arch()
-      break
-  }
-
-  return { platform, arch }
-}
-
 function findLib() {
-  const { platform, arch } = detectPlatformAndArch()
+  const platform = os.platform();
+  const arch = os.arch();
   const packageName = `@openffi/libgit2-${platform}-${arch}`
-  const extension = platform === "windows" ? "dll" : platform === "darwin" ? "dylib" : "so"
+  const extension = platform === "win32" ? "dll" : platform === "darwin" ? "dylib" : "so"
 
   try {
     // Use require.resolve to find the package

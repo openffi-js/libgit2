@@ -8,75 +8,86 @@ let TARGETS = [
   ["linux" "arm64"]
   ["darwin" "x64"]
   ["darwin" "arm64"]
-  ["windows" "x64"]
+  ["win32" "x64"]
 ];
 
-def create-package [name: string, version: string, os: string, arch: string] {
-  let full_name = $"($name)-($os)-($arch)";
-  print $"Creating package '($full_name)'...";
-  if not ($full_name | path exists) {
-    print $"Error: could not find artifacts for '($full_name)'. Skipping.";
-    return null;
-  }
-
-  let lib_files = glob $"($full_name)/*";
-  let lib_dir = $full_name | path join "lib";
-  mkdir $lib_dir;
-  mv ...$lib_files $lib_dir;
-
-  {
-    name: $"($ORG)/($full_name)",
-    version: $version,
-    os: [ (if $os == "windows" { "win32" } else { $os }) ],
-    cpu: [ $arch ],
-  } | save -f ($full_name | path join "package.json");
-
-  $full_name
+def create-package-dir [ name: string, package_json: record, files: table ] {
+  mkdir $name;
+  $package_json | save -f ($name | path join "package.json");
+  $files | each { |f|
+    let src = $f.src | path expand;
+    let dst = ($name | path join $f.dst);
+    mkdir ($dst | path dirname);
+    cp $src $dst;
+  };
 }
 
-def publish [ version: string, index_js_path: string ] {
+def prepare-packages [ version: string, artifacts_dir: string, index_js_path: string ] {
   let subpackages = $TARGETS | each {
-    let subpackage_name = create-package $NAME $version $in.os $in.arch;
-    if $subpackage_name != null {
-      cd $subpackage_name;
-      ^npm publish --access public --tag latest
-      cd ..;
-    }
+    let os = $in.os;
+    let arch = $in.arch;
+
+    let subpackage_name = $"($NAME)-($os)-($arch)";
+    create-package-dir $subpackage_name {
+      name: $"($ORG)/($subpackage_name)",
+      version: $version,
+      os: [ $os ],
+      cpu: [ $arch ],
+    } (glob $"($artifacts_dir)/libgit2-($os)-($arch)/*" | each { { src: $in, dst: $"lib/($in | path basename)" } });
+
     $subpackage_name
   };
 
-  mkdir $NAME;
+  let all_package_name = $"($NAME)-all";
+  create-package-dir $all_package_name {
+    name: $"($ORG)/($all_package_name)",
+    version: $version,
+  } (
+    $TARGETS | each {
+      let os = $in.os;
+      let arch = $in.arch;
+      glob $"($artifacts_dir)/libgit2-($os)-($arch)/*" | each { { src: $in, dst: $"lib/($os)-($arch)/($in | path basename)" } }
+    } | flatten
+  );
 
-  let full_name = $"($ORG)/($NAME)";
-  {
-    name: $full_name,
+  create-package-dir $NAME {
+    name: $"($ORG)/($NAME)",
     version: $version,
     optionalDependencies: (
-      $subpackages | compact | each { [ $"($ORG)/($in)" $version ] } | into record
+      $subpackages | each { [ $"($ORG)/($in)" $version ] } | into record
     ),
-  } | save -f ($NAME | path join "package.json");
-  cp $index_js_path ($NAME | path join "index.js");
+  } [{ src: $index_js_path, dst: "index.js"}];
 
-  cd $NAME;
-  ^npm publish --access public --tag latest;
+  [
+    ...$subpackages
+    $all_package_name
+    $NAME
+  ]
 }
 
-def main [ workflow_run_url: string, version_suffix?: string ] {
+
+def publish-package [ package_dir: string ] {
+  cd $package_dir;
+  ^npm publish --access public --tag latest
+}
+
+def main [ workflow_run_url: string, npm_version?: string ] {
   let run_id = $workflow_run_url | path basename;
-  let version = open "version.txt" | str trim;
+  let version = open "./version.txt" | str trim;
   let index_js_path = "./index.js" | path expand;
 
-  let build_dir = $"($run_id)($version_suffix)";
-  mkdir $build_dir;
-  cd $build_dir;
-  ^gh run download $run_id;
+  let build_dir = "./build" | path expand | path join (date now | format date "%F-%H-%M-%S");
+  let artifacts_dir = $build_dir | path join "artifacts";
+  mkdir $artifacts_dir;
+  ^gh run download $run_id --dir $artifacts_dir;
 
-  if $version_suffix == null {
-    publish $version $index_js_path;
+  let version_str = if $npm_version == null {
+    $version
   } else {
-    publish $"($version)-($version_suffix)" $index_js_path;
-  }
+    $"($version)-($npm_version)"
+  };
 
-  cd ..;
-  rm -r $build_dir;
+  cd $build_dir;
+  let prepared_packages = prepare-packages $version_str $artifacts_dir $index_js_path;
+  $prepared_packages | each { publish-package $in };
 }
