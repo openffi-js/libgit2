@@ -38,9 +38,7 @@ def publish [ version: string, index_js_path: string ] {
   let subpackages = $TARGETS | each {
     let subpackage_name = create-package $NAME $version $in.os $in.arch;
     if $subpackage_name != null {
-      cd $subpackage_name;
-      ^bun publish --access public --tag latest;
-      cd ..;
+      ^bun publish --access public --tag latest --cwd $subpackage_name;
     }
     $subpackage_name
   };
@@ -57,8 +55,7 @@ def publish [ version: string, index_js_path: string ] {
   } | save -f ($NAME | path join "package.json");
   cp $index_js_path ($NAME | path join "index.js");
 
-  cd $NAME;
-  ^bun publish --access public --tag latest;
+  ^bun publish --access public --tag latest --cwd $NAME;
 }
 
 def main [ workflow_run_url: string, version_suffix?: string ] {
