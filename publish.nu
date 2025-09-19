@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 
-let ORG = "@static-libs";
+let ORG = "@openffi";
 let NAME = "libgit2";
 let TARGETS = [
   [os arch];
