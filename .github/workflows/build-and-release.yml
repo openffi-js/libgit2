@@ -21,11 +21,11 @@ jobs:
             packageName: default
             resultFile: './result/lib/libgit2.so'
           - runs-on: macos-latest
-            platform: macos-arm64
+            platform: darwin-arm64
             packageName: default
             resultFile: './result/lib/libgit2.dylib'
           - runs-on: macos-latest
-            platform: macos-x64
+            platform: darwin-x64
             packageName: x64Darwin
             resultFile: './result/lib/libgit2.dylib'
           - runs-on: ubuntu-latest

@@ -31,7 +31,14 @@
           };
         };
 
-        version = "1.9.1";
+        aarch64LinuxPkgs = import nixpkgs {
+          inherit system;
+          crossSystem = {
+            config = "aarch64-linux";
+          };
+        };
+
+        version = pkgs.lib.strings.trim (builtins.readFile ./version.txt);
 
         build =
           targetPkgs:
@@ -123,6 +130,7 @@
         packages.default = build pkgs;
         packages.windows = build windowsPkgs;
         packages.x64Darwin = build x64DarwinPkgs;
+        packages.aarch64Linux = build aarch64LinuxPkgs;
       }
     );
 }
