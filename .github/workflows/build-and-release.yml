@@ -12,33 +12,28 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
+          - runs-on: ubuntu-latest
             platform: linux-x64
             packageName: default
-            extension: 'so'
             resultFile: './result/lib/libgit2.so'
-          - os: ubuntu-24.04-arm
+          - runs-on: ubuntu-24.04-arm
             platform: linux-arm64
             packageName: default
-            extension: 'so'
             resultFile: './result/lib/libgit2.so'
-          - os: macos-latest
+          - runs-on: macos-latest
             platform: macos-arm64
             packageName: default
-            extension: 'dylib'
             resultFile: './result/lib/libgit2.dylib'
-          - os: macos-latest
+          - runs-on: macos-latest
             platform: macos-x64
             packageName: x64Darwin
-            extension: 'dylib'
             resultFile: './result/lib/libgit2.dylib'
-          - os: ubuntu-latest
+          - runs-on: ubuntu-latest
             platform: windows-x64
             packageName: windows
-            extension: 'dll'
             resultFile: './result/bin/libgit2.dll'
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.runs-on }}
 
     outputs:
       artifacts: ${{ steps.collect-artifacts.outputs.artifacts }}
@@ -60,24 +55,6 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: libgit2-${{ matrix.platform }}.${{ matrix.extension }}
+          name: libgit2-${{ matrix.platform }}
           path: ${{ matrix.resultFile }}
           retention-days: 1
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Create release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: artifacts/**/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
