@@ -15,8 +15,8 @@ def create-package [name: string, version: string, os: string, arch: string] {
   let full_name = $"($name)-($os)-($arch)";
   print $"Creating package '($full_name)'...";
   if not ($full_name | path exists) {
-    print $"Error: directory '($full_name)' does not exist.";
-    exit 1;
+    print $"Error: could not find artifacts for '($full_name)'. Skipping.";
+    return null;
   }
 
   let lib_files = glob $"($full_name)/*";
@@ -37,9 +37,11 @@ def create-package [name: string, version: string, os: string, arch: string] {
 def publish [ version: string, index_js_path: string ] {
   let subpackages = $TARGETS | each {
     let subpackage_name = create-package $NAME $version $in.os $in.arch;
-    cd $subpackage_name;
-    ^bun publish --access public --tag latest;
-    cd ..;
+    if $subpackage_name != null {
+      cd $subpackage_name;
+      ^bun publish --access public --tag latest;
+      cd ..;
+    }
     $subpackage_name
   };
 
@@ -50,7 +52,7 @@ def publish [ version: string, index_js_path: string ] {
     name: $full_name,
     version: $version,
     optionalDependencies: (
-      $subpackages | each { [ $"($ORG)/($in)" $version ] } | into record
+      $subpackages | compact | each { [ $"($ORG)/($in)" $version ] } | into record
     ),
   } | save -f ($NAME | path join "package.json");
   cp $index_js_path ($NAME | path join "index.js");
@@ -74,4 +76,7 @@ def main [ workflow_run_url: string, version_suffix?: string ] {
   } else {
     publish $"($version)-($version_suffix)" $index_js_path;
   }
+
+  cd ..;
+  rm -r $build_dir;
 }
