@@ -5,8 +5,8 @@ Use libgit2 seamlessly in JavaScript without any external dependencies. This pac
 ## Installation
 
 ```bash
-npm install @static-libs/libgit2 # with npm
-bun add @static-libs/libgit2     # with Bun
+npm install @openffi/libgit2 # with npm
+bun add @openffi/libgit2     # with Bun
 ```
 
 ## Usage
@@ -15,7 +15,7 @@ bun add @static-libs/libgit2     # with Bun
 
 ```typescript
 import { dlopen, FFIType } from "bun:ffi";
-import libgit2 from "@static-libs/libgit2";
+import libgit2 from "@openffi/libgit2";
 
 // int git_libgit2_version(int *major, int *minor, int *rev);
 const {

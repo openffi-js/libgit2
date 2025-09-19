@@ -45,7 +45,7 @@ function detectPlatformAndArch() {
 
 function findLib() {
   const { platform, arch } = detectPlatformAndArch()
-  const packageName = `@static-libs/libgit2-${platform}-${arch}`
+  const packageName = `@openffi/libgit2-${platform}-${arch}`
   const extension = platform === "windows" ? "dll" : platform === "darwin" ? "dylib" : "so"
 
   try {
