@@ -46,6 +46,9 @@ jobs:
         uses: cachix/install-nix-action@v27
         with:
           nix_path: nixpkgs=channel:nixos-unstable
+          extra_nix_config: |
+            substituters = https://cache.nixos.org https://openffi.cachix.org https://nix-community.cachix.org
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= openffi.cachix.org-1:qxoYLjU5xesgON+Qtrx01tkyyXu+4dGyIXcUwwx+Zo4= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
         env:
           NIX_FIRST_BUILD_UID: "351"
 
