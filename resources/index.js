@@ -28,4 +28,9 @@ function findLib() {
 }
 
 const libraryPath = findLib()
+
+/**
+  * The path to the libgit2 shared library.
+  * @type {string}
+  */
 export default libraryPath

@@ -1,13 +1,17 @@
-# Static LibGit2
+# Static libgit2
 
 Use libgit2 seamlessly in JavaScript without any external dependencies. This package provides libgit2 as a dynamic library, statically compiled against its dependencies. This enables usage of the library with Bun/Node.js FFI.
 
 ## Installation
 
+The `@openffi/libgit2` package will install the appropriate library for your OS and architecture.
+
 ```bash
 npm install @openffi/libgit2 # with npm
 bun add @openffi/libgit2     # with Bun
 ```
+
+Alternatively, if you need the libraries for all platforms, you can install the `@openffi/libgit2-all` package.
 
 ## Usage
 

@@ -22,7 +22,7 @@ def create-package-dir [ name: string, package_json: record, files: table ] {
   };
 }
 
-def prepare-packages [ version: string, artifacts_dir: string, index_js_path: string ] {
+def prepare-packages [ version: string, artifacts_dir: string, resources_path: string ] {
   let subpackages = $TARGETS | each {
     let os = $in.os;
     let arch = $in.arch;
@@ -56,7 +56,10 @@ def prepare-packages [ version: string, artifacts_dir: string, index_js_path: st
     optionalDependencies: (
       $subpackages | each { [ $"($ORG)/($in)" $version ] } | into record
     ),
-  } [{ src: $index_js_path, dst: "index.js"}];
+  } [
+    { src: ($resources_path | path join "index.js"), dst: "index.js"}
+    { src: ($resources_path | path join "index.d.ts"), dst: "index.d.ts"}
+  ];
 
   [
     ...$subpackages
@@ -74,7 +77,7 @@ def publish-package [ package_dir: string ] {
 def main [ workflow_run_url: string, npm_version?: string ] {
   let run_id = $workflow_run_url | path basename;
   let version = open "./version.txt" | str trim;
-  let index_js_path = "./index.js" | path expand;
+  let resources_path = "./resources" | path expand;
 
   let build_dir = "./build" | path expand | path join (date now | format date "%F-%H-%M-%S");
   let artifacts_dir = $build_dir | path join "artifacts";
@@ -88,6 +91,6 @@ def main [ workflow_run_url: string, npm_version?: string ] {
   };
 
   cd $build_dir;
-  let prepared_packages = prepare-packages $version_str $artifacts_dir $index_js_path;
+  let prepared_packages = prepare-packages $version_str $artifacts_dir $resources_path;
   $prepared_packages | each { publish-package $in };
 }
