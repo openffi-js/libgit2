@@ -47,7 +47,12 @@ def prepare-packages [ version: string, artifacts_dir: string, resources_path: s
       let os = $in.os;
       let arch = $in.arch;
       glob $"($artifacts_dir)/libgit2-($os)-($arch)/*" | each { { src: $in, dst: $"lib/($os)-($arch)/($in | path basename)" } }
-    } | flatten
+    }
+    | flatten
+    | append [
+      { src: ($resources_path | path join "index-all.js"), dst: "index.js" }
+      { src: ($resources_path | path join "index.d.ts"), dst: "index.d.ts" }
+    ]
   );
 
   create-package-dir $NAME {
@@ -71,12 +76,13 @@ def prepare-packages [ version: string, artifacts_dir: string, resources_path: s
 
 def publish-package [ package_dir: string ] {
   cd $package_dir;
-  ^npm publish --access public --tag latest
+  ^bun publish --access public --tag latest
 }
 
-def main [ workflow_run_url: string, npm_version?: string ] {
+def main [ workflow_run_url: string ] {
   let run_id = $workflow_run_url | path basename;
-  let version = open "./version.txt" | str trim;
+  let version = open "./library-version.txt" | str trim;
+  let npm_version = open "./npm-version.txt" | str trim;
   let resources_path = "./resources" | path expand;
 
   let build_dir = "./build" | path expand | path join (date now | format date "%F-%H-%M-%S");

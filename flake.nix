@@ -38,7 +38,7 @@
           };
         };
 
-        version = pkgs.lib.strings.trim (builtins.readFile ./version.txt);
+        version = pkgs.lib.strings.trim (builtins.readFile ./library-version.txt);
 
         build =
           targetPkgs:
