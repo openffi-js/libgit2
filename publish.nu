@@ -79,8 +79,7 @@ def publish-package [ package_dir: string ] {
   ^bun publish --access public --tag latest
 }
 
-def main [ workflow_run_url: string ] {
-  let run_id = $workflow_run_url | path basename;
+def main [] {
   let version = open "./library-version.txt" | str trim;
   let npm_version = open "./npm-version.txt" | str trim;
   let resources_path = "./resources" | path expand;
@@ -88,6 +87,8 @@ def main [ workflow_run_url: string ] {
   let build_dir = "./build" | path expand | path join (date now | format date "%F-%H-%M-%S");
   let artifacts_dir = $build_dir | path join "artifacts";
   mkdir $artifacts_dir;
+
+  let run_id = ^gh run list -R openffi-js/libgit2 -w 'Build' -L 1 --json databaseId | from json | get 0.databaseId;
   ^gh run download $run_id --dir $artifacts_dir;
 
   let version_str = if $npm_version == null {
