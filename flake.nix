@@ -87,12 +87,13 @@
                 "-DCMAKE_C_STANDARD=99"
               ];
 
-              nativeBuildInputs =
-                with pkgs;
-                [
-                  cmake
-                ]
-                ++ lib.optional stdenv.hostPlatform.isLinux [ pkg-config ];
+              nativeBuildInputs = [
+                (if stdenv.hostPlatform.isLinux then pkgs.pkgsMusl.cmake else pkgs.cmake)
+              ]
+              ++ lib.optional stdenv.hostPlatform.isLinux [
+                pkgs.pkgsMusl.gcc
+                pkgs.pkg-config
+              ];
 
               buildInputs = [
                 targetPkgs.zlib.static
