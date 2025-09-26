@@ -53,7 +53,9 @@ jobs:
           NIX_FIRST_BUILD_UID: "351"
 
       - name: Build project
-        run: nix build .#${{ matrix.packageName }}
+        run: nix-shell -p cachix --run 'nix build --print-out-paths .#${{ matrix.packageName }} | cachix push openffi'
+        env:
+          CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
